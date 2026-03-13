@@ -29,7 +29,7 @@ Automate building customized Proxmox VE Cloud Images and provide a one-liner to 
 Run on your Proxmox VE host as root:
 
 ```bash
-curl -fsSL <install.sh URL> | bash
+curl -fsSL https://raw.githubusercontent.com/elct9620/pve-base-image/main/install.sh | bash
 ```
 
 The script will guide you through:
@@ -71,7 +71,7 @@ qm start 100
 Use environment variables to skip prompts, useful for Ansible or batch deployments:
 
 ```bash
-curl -fsSL <install.sh URL> | VM_ID=9000 VARIANT=docker bash
+curl -fsSL https://raw.githubusercontent.com/elct9620/pve-base-image/main/install.sh | VM_ID=9000 VARIANT=docker bash
 ```
 
 ## Add a New Variant
