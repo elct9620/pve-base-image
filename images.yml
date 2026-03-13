@@ -1,13 +1,13 @@
 bases:
   - codename: noble
     version: "24.04"
-    url: "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-{arch}.img"
+    url: "https://cloud-images.ubuntu.com/minimal/releases/noble/release/ubuntu-24.04-minimal-cloudimg-{arch}.img"
     arch:
       - amd64
       - arm64
   - codename: jammy
     version: "22.04"
-    url: "https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-{arch}.img"
+    url: "https://cloud-images.ubuntu.com/minimal/releases/jammy/release/ubuntu-22.04-minimal-cloudimg-{arch}.img"
     arch:
       - amd64
       - arm64
