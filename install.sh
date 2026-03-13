@@ -16,16 +16,29 @@ prompt() {
   local input
   read -r -p "${prompt_msg} [${default}]: " input </dev/tty
   if [[ -z "${input}" ]]; then
-    eval "${var}='${default}'"
+    printf -v "${var}" '%s' "${default}"
   else
-    eval "${var}='${input}'"
+    printf -v "${var}" '%s' "${input}"
   fi
 }
 
 prompt_menu() {
   local var="$1" prompt_msg="$2" default="$3"
   shift 3
-  local options=("$@")
+
+  local options=() labels=()
+  local separator_found=false
+  for arg in "$@"; do
+    if [[ "${arg}" == "--" ]]; then
+      separator_found=true
+      continue
+    fi
+    if "${separator_found}"; then
+      labels+=("${arg}")
+    else
+      options+=("${arg}")
+    fi
+  done
 
   if [[ -n "${!var:-}" ]]; then
     return
@@ -34,12 +47,16 @@ prompt_menu() {
   echo ""
   echo "${prompt_msg}"
   local i=1
-  for opt in "${options[@]}"; do
+  for idx in "${!options[@]}"; do
+    local display="${options[${idx}]}"
+    if [[ ${#labels[@]} -gt 0 ]]; then
+      display="${labels[${idx}]}"
+    fi
     local marker=""
-    if [[ "${opt}" == "${default}" ]]; then
+    if [[ "${options[${idx}]}" == "${default}" ]]; then
       marker=" (default)"
     fi
-    echo "  [${i}] ${opt}${marker}"
+    echo "  [${i}] ${display}${marker}"
     i=$((i + 1))
   done
 
@@ -47,9 +64,9 @@ prompt_menu() {
   read -r -p "Select [1-${#options[@]}]: " input </dev/tty
 
   if [[ -z "${input}" ]]; then
-    eval "${var}='${default}'"
+    printf -v "${var}" '%s' "${default}"
   elif [[ "${input}" =~ ^[0-9]+$ ]] && (( input >= 1 && input <= ${#options[@]} )); then
-    eval "${var}='${options[$((input - 1))]}'"
+    printf -v "${var}" '%s' "${options[$((input - 1))]}"
   else
     error "Invalid selection: ${input}"
   fi
@@ -83,7 +100,7 @@ gh_api() {
   headers+=("--header" "Accept: application/vnd.github+json")
 
   local response
-  if ! response=$(wget -qO- "${headers[@]}" "${url}" 2>&1); then
+  if ! response=$(wget -qO- "${headers[@]}" "${url}" 2>/dev/null); then
     echo "Error: GitHub API request failed for ${url}" >&2
     echo "If you are being rate limited, set the GITHUB_TOKEN environment variable." >&2
     exit 1
@@ -117,7 +134,7 @@ fi
 
 DEFAULT_BASE="noble"
 if command -v pveversion > /dev/null 2>&1; then
-  PVE_MAJOR=$(pveversion | grep -oP 'pve-manager/\K[0-9]+' || true)
+  PVE_MAJOR=$(pveversion | sed -n 's/.*pve-manager\/\([0-9]*\).*/\1/p' || true)
   case "${PVE_MAJOR}" in
     8) DEFAULT_BASE="noble" ;;
     7) DEFAULT_BASE="jammy" ;;
@@ -129,45 +146,22 @@ fi
 info "Phase 1: Image Selection"
 
 # Architecture
-ARCH_OPTIONS=($(jq -r '[.[].arch] | unique | .[]' "${MANIFEST}"))
+mapfile -t ARCH_OPTIONS < <(jq -r '[.[].arch] | unique | .[]' "${MANIFEST}")
 prompt_menu ARCH "Select architecture:" "amd64" "${ARCH_OPTIONS[@]}"
 
 # Distribution
-DIST_OPTIONS=($(jq -r --arg arch "${ARCH}" '[.[] | select(.arch == $arch)] | [.[].codename] | unique | .[]' "${MANIFEST}"))
+mapfile -t DIST_OPTIONS < <(jq -r --arg arch "${ARCH}" '[.[] | select(.arch == $arch)] | [.[].codename] | unique | .[]' "${MANIFEST}")
 DIST_LABELS=()
 for dist in "${DIST_OPTIONS[@]}"; do
   ver=$(jq -r --arg c "${dist}" '[.[] | select(.codename == $c)][0].version' "${MANIFEST}")
   DIST_LABELS+=("${dist} (${ver})")
 done
 
-if [[ -z "${BASE:-}" ]]; then
-  echo ""
-  echo "Select distribution:"
-  _menu_i=1
-  for label in "${DIST_LABELS[@]}"; do
-    _marker=""
-    if [[ "${DIST_OPTIONS[$((_menu_i - 1))]}" == "${DEFAULT_BASE}" ]]; then
-      _marker=" (default)"
-    fi
-    echo "  [${_menu_i}] ${label}${_marker}"
-    _menu_i=$((_menu_i + 1))
-  done
-
-  _input=""
-  read -r -p "Select [1-${#DIST_OPTIONS[@]}]: " _input </dev/tty
-
-  if [[ -z "${_input}" ]]; then
-    BASE="${DEFAULT_BASE}"
-  elif [[ "${_input}" =~ ^[0-9]+$ ]] && (( _input >= 1 && _input <= ${#DIST_OPTIONS[@]} )); then
-    BASE="${DIST_OPTIONS[$((_input - 1))]}"
-  else
-    error "Invalid selection: ${_input}"
-  fi
-fi
+prompt_menu BASE "Select distribution:" "${DEFAULT_BASE}" "${DIST_OPTIONS[@]}" -- "${DIST_LABELS[@]}"
 
 # Variant
-VARIANT_OPTIONS=($(jq -r --arg arch "${ARCH}" --arg base "${BASE}" \
-  '[.[] | select(.arch == $arch and .codename == $base)] | [.[].variant] | unique | .[]' "${MANIFEST}"))
+mapfile -t VARIANT_OPTIONS < <(jq -r --arg arch "${ARCH}" --arg base "${BASE}" \
+  '[.[] | select(.arch == $arch and .codename == $base)] | [.[].variant] | unique | .[]' "${MANIFEST}")
 prompt_menu VARIANT "Select variant:" "base" "${VARIANT_OPTIONS[@]}"
 
 # Validate selection exists in manifest
