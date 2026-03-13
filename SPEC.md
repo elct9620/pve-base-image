@@ -76,10 +76,13 @@ bases:
     arch: [<string>, ...]     # Supported architectures (amd64, arm64)
 
 variants:
-  - <string>                  # Variant name; "base" must be listed explicitly
+  - name: <string>            # Variant name; "base" must be listed explicitly
+    display_name: <string>    # Human-readable name for manifest description (e.g., "Docker CE")
 ```
 
 `base` must appear as an explicit entry in the `variants` list. It is not implicitly generated. When variant is `base`, the build uses `base/cloud.cfg` only and does not look for a `variants/base/` directory.
+
+The `display_name` field is used to generate the `description` in `manifest.json`. For base variant, it is ignored — the description is always `"<OS> <version>"`. For other variants, the description is `"<OS> <version> + <display_name>"`.
 
 #### Matrix Generation
 
@@ -89,7 +92,14 @@ variants:
 
 - `yq` v4+ (uses `eval-all` syntax)
 - `libguestfs-tools` (provides `virt-edit`)
+- `linux-image-generic` (required by libguestfs as a kernel source)
 - Each matrix job builds a single image; parallel jobs do not share disk space
+
+#### Architecture-specific Runners
+
+- amd64 images are built on standard `ubuntu-latest` runners
+- arm64 images are built on native arm64 runners (`ubuntu-24.04-arm`)
+- No QEMU emulation is used; each architecture builds natively on its matching runner
 
 #### Cloud-Init Config Merging
 
@@ -111,6 +121,10 @@ Use `virt-edit` (file editing) exclusively; do not use `virt-customize` (require
 ```
 
 Example: `ubuntu-noble-docker-amd64.img`
+
+#### Checksum Generation
+
+Each Release includes a `checksums.sha256` file containing SHA256 hashes for all image assets. This file is generated after all images are built and uploaded alongside them as a Release asset.
 
 #### Release Trigger
 
@@ -142,7 +156,7 @@ Each Release includes a `manifest.json` describing all images in the Release. Th
 | `version` | string | Ubuntu version number |
 | `variant` | string | Variant name |
 | `arch` | string | CPU architecture |
-| `description` | string | Human-readable one-line summary |
+| `description` | string | Auto-generated: `"<OS> <version>"` for base variant, `"<OS> <version> + <display_name>"` for other variants |
 
 The install script depends on this schema to populate selection menus and construct download URLs.
 
@@ -204,6 +218,10 @@ When a corresponding environment variable is set, the script skips that prompt:
 | `CORES` | CPU cores |
 | `BRIDGE` | Network bridge |
 
+#### Checksum Verification
+
+After downloading the image, the script also downloads `checksums.sha256` from the same Release and verifies the image's SHA256 checksum. If the checksum does not match, the script exits with an error before proceeding with Template creation.
+
 #### Template Creation
 
 The script downloads the selected image to a temp directory, then creates a PVE Template with the following properties:
@@ -237,11 +255,14 @@ Reads the PVE major version via `pveversion` to recommend a default distribution
 | **Build: base image download fails** | CI job fails, GitHub Actions reports the error, no Release is created |
 | **Build: variant cloud.cfg not found** | When variant is `base`, no variant directory is needed; for other variants, the build script exits with an error if `cloud.cfg` is missing |
 | **Build: yq merge produces invalid YAML** | Build script validates YAML after merging; exits on failure |
+| **Build: images.yml is malformed or missing** | `generate-matrix.sh` exits with a non-zero code and prints a parse error; no matrix is generated and the workflow fails |
 | **Install: not running as root** | Prints `Error: This script must be run as root` and exits with code 1 |
 | **Install: missing jq or wget** | Prints the name of the missing tool and exits with code 1 |
 | **Install: GitHub API request fails** | Prints an error message and suggests setting the `GITHUB_TOKEN` environment variable to avoid rate limiting |
 | **Install: VM ID already exists** | Prints `Error: VM <ID> already exists` and exits without overwriting the existing VM |
 | **Install: image download fails** | Prints an error message and exits; `trap` cleans up temp files |
+| **Install: checksums.sha256 download fails** | Prints a warning and skips checksum verification; proceeds with Template creation |
+| **Install: checksum mismatch** | Prints `Error: Checksum verification failed for <filename>` and exits with code 1; does not proceed with Template creation |
 | **Install: qm command fails** | Prints `qm`'s error output and exits; does not attempt to roll back the created VM (user can manually run `qm destroy`) |
 | **Install: manifest.json missing or malformed** | Prints `Error: Failed to parse manifest from release` and exits with code 1 |
 | **Install: selected combination not in manifest** | Prints `Error: No image found for <codename>-<variant>-<arch>` and exits with code 1 |
