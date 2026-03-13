@@ -128,7 +128,7 @@ Each Release includes a `checksums.sha256` file containing SHA256 hashes for all
 
 #### Release Trigger
 
-A GitHub Release is created on each push of a tag matching `v*` (e.g., `v2026.03.13`). The workflow builds all matrix combinations and uploads assets to that Release.
+A GitHub Release is created on each push of a tag matching `v*` (e.g., `v2026.03.13.1`). Tags follow the format `v<YYYY>.<MM>.<DD>.<seq>`, where `<seq>` is a monotonically increasing integer starting from 1 for each date. This allows multiple releases on the same day. The workflow builds all matrix combinations and uploads assets to that Release.
 
 #### manifest.json Contract
 
