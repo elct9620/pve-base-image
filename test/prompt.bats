@@ -88,6 +88,13 @@ setup() {
   [[ "${RESULT}" == "z" ]]
 }
 
+@test "install.sh: should not fail with unbound BASH_SOURCE in pipe mode" {
+  local script="${BATS_TEST_DIRNAME}/../install.sh"
+  local result
+  result="$(bash -u "${script}" </dev/null 2>&1 || true)"
+  [[ "${result}" != *"BASH_SOURCE: unbound variable"* ]]
+}
+
 @test "prompt_menu: should work without labels" {
   fake_empty_input
   local OPTIONS=("x" "y")
