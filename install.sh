@@ -33,7 +33,7 @@ prompt_menu() {
       separator_found=true
       continue
     fi
-    if "${separator_found}"; then
+    if [[ "${separator_found}" == true ]]; then
       labels+=("${arg}")
     else
       options+=("${arg}")
@@ -44,15 +44,16 @@ prompt_menu() {
     return
   fi
 
+  local display marker
   echo ""
   echo "${prompt_msg}"
   local i=1
   for idx in "${!options[@]}"; do
-    local display="${options[${idx}]}"
+    display="${options[${idx}]}"
     if [[ ${#labels[@]} -gt 0 ]]; then
       display="${labels[${idx}]}"
     fi
-    local marker=""
+    marker=""
     if [[ "${options[${idx}]}" == "${default}" ]]; then
       marker=" (default)"
     fi
