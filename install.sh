@@ -21,23 +21,11 @@ prompt() {
   fi
 }
 
+# prompt_menu VAR "prompt" "default" OPTIONS_ARRAY [LABELS_ARRAY]
 prompt_menu() {
-  local var="$1" prompt_msg="$2" default="$3"
-  shift 3
-
-  local options=() labels=()
-  local separator_found=false
-  for arg in "$@"; do
-    if [[ "${arg}" == "--" ]]; then
-      separator_found=true
-      continue
-    fi
-    if [[ "${separator_found}" == true ]]; then
-      labels+=("${arg}")
-    else
-      options+=("${arg}")
-    fi
-  done
+  local var="$1" prompt_msg="$2" default="$3" options_name="$4"
+  local -n _options="${options_name}"
+  local -n _labels="${5:-_options}"
 
   if [[ -n "${!var:-}" ]]; then
     return
@@ -47,13 +35,10 @@ prompt_menu() {
   echo ""
   echo "${prompt_msg}"
   local i=1
-  for idx in "${!options[@]}"; do
-    display="${options[${idx}]}"
-    if [[ ${#labels[@]} -gt 0 ]]; then
-      display="${labels[${idx}]}"
-    fi
+  for idx in "${!_options[@]}"; do
+    display="${_labels[${idx}]}"
     marker=""
-    if [[ "${options[${idx}]}" == "${default}" ]]; then
+    if [[ "${_options[${idx}]}" == "${default}" ]]; then
       marker=" (default)"
     fi
     echo "  [${i}] ${display}${marker}"
@@ -61,12 +46,12 @@ prompt_menu() {
   done
 
   local input
-  read -r -p "Select [1-${#options[@]}]: " input <"${TTY_INPUT}" || true
+  read -r -p "Select [1-${#_options[@]}]: " input <"${TTY_INPUT}" || true
 
   if [[ -z "${input}" ]]; then
     printf -v "${var}" '%s' "${default}"
-  elif [[ "${input}" =~ ^[0-9]+$ ]] && (( input >= 1 && input <= ${#options[@]} )); then
-    printf -v "${var}" '%s' "${options[$((input - 1))]}"
+  elif [[ "${input}" =~ ^[0-9]+$ ]] && (( input >= 1 && input <= ${#_options[@]} )); then
+    printf -v "${var}" '%s' "${_options[$((input - 1))]}"
   else
     error "Invalid selection: ${input}"
   fi
@@ -155,7 +140,7 @@ info "Phase 1: Image Selection"
 
 # Architecture
 mapfile -t ARCH_OPTIONS < <(jq -r '[.[].arch] | unique | .[]' "${MANIFEST}")
-prompt_menu ARCH "Select architecture:" "amd64" "${ARCH_OPTIONS[@]}"
+prompt_menu ARCH "Select architecture:" "amd64" ARCH_OPTIONS
 
 # Distribution
 mapfile -t DIST_OPTIONS < <(jq -r --arg arch "${ARCH}" '[.[] | select(.arch == $arch)] | [.[].codename] | unique | .[]' "${MANIFEST}")
@@ -165,12 +150,12 @@ for dist in "${DIST_OPTIONS[@]}"; do
   DIST_LABELS+=("${dist} (${ver})")
 done
 
-prompt_menu BASE "Select distribution:" "${DEFAULT_BASE}" "${DIST_OPTIONS[@]}" -- "${DIST_LABELS[@]}"
+prompt_menu BASE "Select distribution:" "${DEFAULT_BASE}" DIST_OPTIONS DIST_LABELS
 
 # Variant
 mapfile -t VARIANT_OPTIONS < <(jq -r --arg arch "${ARCH}" --arg base "${BASE}" \
   '[.[] | select(.arch == $arch and .codename == $base)] | [.[].variant] | unique | .[]' "${MANIFEST}")
-prompt_menu VARIANT "Select variant:" "base" "${VARIANT_OPTIONS[@]}"
+prompt_menu VARIANT "Select variant:" "base" VARIANT_OPTIONS
 
 # Validate selection exists in manifest
 SELECTED=$(jq -r --arg arch "${ARCH}" --arg base "${BASE}" --arg variant "${VARIANT}" \
