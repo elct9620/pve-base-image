@@ -60,7 +60,7 @@ prompt_menu() {
 
 # --- Main (skipped when sourced for testing) ---
 
-[[ "${BASH_SOURCE[0]:-}" != "${0}" ]] && return 0
+[[ -n "${BASH_SOURCE[0]:-}" && "${BASH_SOURCE[0]}" != "${0}" ]] && return 0
 
 REPO="elct9620/pve-base-image"
 

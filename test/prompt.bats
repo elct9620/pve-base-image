@@ -93,6 +93,7 @@ setup() {
   local result
   result="$(bash -u "${script}" </dev/null 2>&1 || true)"
   [[ "${result}" != *"BASH_SOURCE: unbound variable"* ]]
+  [[ "${result}" != *"return: can only"* ]]
 }
 
 @test "prompt_menu: should work without labels" {
