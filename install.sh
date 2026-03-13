@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-set -euo pipefail
-
-REPO="elct9620/pve-base-image"
 
 # --- Helper functions ---
+
+: "${TTY_INPUT:=/dev/tty}"
 
 info() { echo "==> $*"; }
 error() { echo "Error: $*" >&2; exit 1; }
@@ -14,7 +13,7 @@ prompt() {
     return
   fi
   local input
-  read -r -p "${prompt_msg} [${default}]: " input </dev/tty
+  read -r -p "${prompt_msg} [${default}]: " input <"${TTY_INPUT}" || true
   if [[ -z "${input}" ]]; then
     printf -v "${var}" '%s' "${default}"
   else
@@ -62,7 +61,7 @@ prompt_menu() {
   done
 
   local input
-  read -r -p "Select [1-${#options[@]}]: " input </dev/tty
+  read -r -p "Select [1-${#options[@]}]: " input <"${TTY_INPUT}" || true
 
   if [[ -z "${input}" ]]; then
     printf -v "${var}" '%s' "${default}"
@@ -72,6 +71,14 @@ prompt_menu() {
     error "Invalid selection: ${input}"
   fi
 }
+
+# --- Main (skipped when sourced for testing) ---
+
+[[ "${BASH_SOURCE[0]}" != "${0}" ]] && return 0
+
+set -euo pipefail
+
+REPO="elct9620/pve-base-image"
 
 # --- Prerequisites ---
 
