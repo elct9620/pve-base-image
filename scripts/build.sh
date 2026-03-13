@@ -70,6 +70,6 @@ echo "Downloading base image from ${URL}..."
 wget -q --show-progress -O "${OUTPUT_FILE}" "${URL}"
 
 echo "Injecting cloud.cfg into image..."
-virt-edit -a "${OUTPUT_FILE}" /etc/cloud/cloud.cfg --upload "${MERGED_CFG}"
+guestfish --rw -a "${OUTPUT_FILE}" -i upload "${MERGED_CFG}" /etc/cloud/cloud.cfg
 
 echo "Built: ${OUTPUT_FILE}"

@@ -91,7 +91,7 @@ The `display_name` field is used to generate the `description` in `manifest.json
 #### Build Prerequisites
 
 - `yq` v4+ (uses `eval-all` syntax)
-- `libguestfs-tools` (provides `virt-edit`)
+- `libguestfs-tools` (provides `guestfish`)
 - `linux-image-generic` (required by libguestfs as a kernel source)
 - Each matrix job builds a single image; parallel jobs do not share disk space
 
@@ -108,11 +108,11 @@ Uses `yq` to deep-merge base and variant `cloud.cfg` files:
 - **variant is `base`**: Use `base/cloud.cfg` only
 - **variant is not `base`**: Deep-merge `base/cloud.cfg` with `variants/<variant>/cloud.cfg`. Variant values override base values for the same keys; array fields are replaced (not appended)
 
-The merged config is written into the image's `/etc/cloud/cloud.cfg` via `virt-edit`.
+The merged config is written into the image's `/etc/cloud/cloud.cfg` via `guestfish upload`.
 
 #### Image Customization Method
 
-Use `virt-edit` (file editing) exclusively; do not use `virt-customize` (requires KVM). Package installation is deferred to cloud-init at first boot.
+Use `guestfish upload` (file injection) exclusively; do not use `virt-customize` (requires KVM). Package installation is deferred to cloud-init at first boot.
 
 #### Release Asset Naming
 
@@ -285,7 +285,7 @@ Reads the PVE major version via `pveversion` to recommend a default distribution
 ### Cloud-Init Config Merge Pattern
 
 ```
-base/cloud.cfg  ×  variants/<variant>/cloud.cfg  →  merged.cfg  →  virt-edit into image
+base/cloud.cfg  ×  variants/<variant>/cloud.cfg  →  merged.cfg  →  guestfish upload into image
 ```
 
 All variants share the same merge rule: variant overrides base. Adding a new variant only requires creating `variants/<name>/cloud.cfg` — no changes to the build logic are needed.

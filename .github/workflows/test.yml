@@ -13,7 +13,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Run unit tests
-        uses: bats-core/bats-action@4
+        uses: bats-core/bats-action@4.0.0
         with:
           tests: test/prompt.bats
 
@@ -25,6 +25,6 @@ jobs:
       - uses: ./.github/actions/setup-yq
 
       - name: Run script tests
-        uses: bats-core/bats-action@4
+        uses: bats-core/bats-action@4.0.0
         with:
           tests: test/generate_matrix.bats
