@@ -171,7 +171,8 @@ info "Selected: ${DESCRIPTION} (${IMAGE_FILE})"
 
 info "Phase 2: Template Parameters"
 
-DEFAULT_VM_NAME="cloud-${BASE}-${VARIANT}"
+OS=$(echo "${SELECTED}" | jq -r '.os')
+DEFAULT_VM_NAME="${OS}-${BASE}-${VARIANT}"
 
 prompt VM_ID "VM ID" "9000"
 prompt VM_NAME "VM name" "${DEFAULT_VM_NAME}"

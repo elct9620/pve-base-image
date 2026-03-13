@@ -198,7 +198,7 @@ The script collects parameters in two phases: **image selection** (required choi
 | Order | Parameter | Default | Notes |
 |-------|-----------|---------|-------|
 | 4 | VM ID | 9000 | Integer |
-| 5 | VM name | `cloud-<codename>-<variant>` | Auto-generated from selections |
+| 5 | VM name | `<os>-<codename>-<variant>` | Auto-generated from selections |
 | 6 | Storage | local-lvm | PVE storage ID |
 | 7 | Cloud-Init Storage | local-lvm | PVE storage ID |
 | 8 | Memory | 2048 | MB; baked into Template as default, overridable at clone time |
@@ -300,9 +300,13 @@ All variants share the same merge rule: variant overrides base. Adding a new var
 
 ### Naming Convention Pattern
 
-All image assets follow a uniform naming scheme: `<os>-<codename>-<variant>-<arch>.img`
+All assets follow a uniform naming scheme based on `<os>-<codename>-<variant>`:
+
+- Image assets: `<os>-<codename>-<variant>-<arch>.img`
+- VM Template default name: `<os>-<codename>-<variant>`
 
 This naming is used consistently across:
 - GitHub Release asset filenames
 - The `file` field in `manifest.json`
 - The install script's download URL construction
+- The install script's default VM Template name

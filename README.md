@@ -49,7 +49,7 @@ The script will guide you through:
 ├─── Phase 2: Template Defaults (Enter = accept) ────────┤
 │                                                        │
 │  VM ID?          9000                                  │
-│  VM Name?        cloud-noble-docker                    │
+│  VM Name?        ubuntu-noble-docker                   │
 │  Storage?        local-lvm                             │
 │  Memory?         2048 MB                               │
 │  CPU Cores?      1                                     │
@@ -144,7 +144,7 @@ All variables are optional. Set them to skip the corresponding interactive promp
 | `BASE` | Ubuntu codename | PVE 8.x → `noble`, 7.x → `jammy` |
 | `VARIANT` | Image variant | `base` |
 | `VM_ID` | Template VM ID | `9000` |
-| `VM_NAME` | Template name | `cloud-<codename>-<variant>` |
+| `VM_NAME` | Template name | `<os>-<codename>-<variant>` |
 | `STORAGE` | Disk storage | `local-lvm` |
 | `CI_STORAGE` | Cloud-init storage | `local-lvm` |
 | `MEMORY` | Memory (MB) | `2048` |
