@@ -1,0 +1,19 @@
+bases:
+  - codename: noble
+    version: "24.04"
+    url: "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-{arch}.img"
+    arch:
+      - amd64
+      - arm64
+  - codename: jammy
+    version: "22.04"
+    url: "https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-{arch}.img"
+    arch:
+      - amd64
+      - arm64
+
+variants:
+  - name: base
+    display_name: ""
+  - name: docker
+    display_name: "Docker CE"
