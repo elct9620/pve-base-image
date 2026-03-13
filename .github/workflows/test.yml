@@ -12,10 +12,16 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Run unit tests
+      - name: Setup Bats
+        id: setup-bats
         uses: bats-core/bats-action@4.0.0
-        with:
-          tests: test/prompt.bats
+
+      - name: Run unit tests
+        shell: bash
+        env:
+          BATS_LIB_PATH: ${{ steps.setup-bats.outputs.lib-path }}
+          TERM: xterm
+        run: bats test/prompt.bats
 
   script-test:
     runs-on: ubuntu-latest
@@ -24,7 +30,13 @@ jobs:
 
       - uses: ./.github/actions/setup-yq
 
-      - name: Run script tests
+      - name: Setup Bats
+        id: setup-bats
         uses: bats-core/bats-action@4.0.0
-        with:
-          tests: test/generate_matrix.bats
+
+      - name: Run script tests
+        shell: bash
+        env:
+          BATS_LIB_PATH: ${{ steps.setup-bats.outputs.lib-path }}
+          TERM: xterm
+        run: bats test/generate_matrix.bats
