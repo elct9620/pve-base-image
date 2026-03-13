@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 # --- Helper functions ---
 
@@ -60,8 +61,6 @@ prompt_menu() {
 # --- Main (skipped when sourced for testing) ---
 
 [[ "${BASH_SOURCE[0]}" != "${0}" ]] && return 0
-
-set -euo pipefail
 
 REPO="elct9620/pve-base-image"
 

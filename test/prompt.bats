@@ -5,17 +5,6 @@ setup() {
   TEST_INPUT="${BATS_TEST_TMPDIR}/input"
 }
 
-# Write simulated user input to file and point TTY_INPUT to it
-fake_input() {
-  printf '%s\n' "$1" > "${TEST_INPUT}"
-  TTY_INPUT="${TEST_INPUT}"
-}
-
-fake_empty_input() {
-  printf '' > "${TEST_INPUT}"
-  TTY_INPUT="${TEST_INPUT}"
-}
-
 # --- prompt ---
 
 @test "prompt: should use default when input is empty" {
@@ -76,6 +65,27 @@ fake_empty_input() {
   run prompt_menu RESULT "Pick:" "a" OPTIONS
   [[ "${status}" -ne 0 ]]
   [[ "${output}" == *"Invalid selection"* ]]
+}
+
+@test "prompt_menu: should select first option by number" {
+  fake_input "1"
+  local OPTIONS=("a" "b" "c")
+  prompt_menu RESULT "Pick one:" "b" OPTIONS
+  [[ "${RESULT}" == "a" ]]
+}
+
+@test "prompt_menu: should select last option by number" {
+  fake_input "3"
+  local OPTIONS=("a" "b" "c")
+  prompt_menu RESULT "Pick one:" "a" OPTIONS
+  [[ "${RESULT}" == "c" ]]
+}
+
+@test "prompt_menu: should accept default not in options" {
+  fake_empty_input
+  local OPTIONS=("a" "b")
+  prompt_menu RESULT "Pick one:" "z" OPTIONS
+  [[ "${RESULT}" == "z" ]]
 }
 
 @test "prompt_menu: should work without labels" {
