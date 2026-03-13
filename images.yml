@@ -16,3 +16,9 @@ variants:
     display_name: ""
   - name: docker
     display_name: "Docker CE"
+    snippets:
+      - docker
+  - name: coding
+    display_name: "Coding (Docker + mise + AI Tools)"
+    snippets:
+      - docker

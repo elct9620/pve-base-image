@@ -30,7 +30,7 @@ setup() {
 @test "generate-matrix: should produce entries matching images.yml" {
   output=$(bash "${SCRIPT}")
   count=$(echo "${output}" | jq '.include | length')
-  # images.yml has 2 bases x 2 archs x 2 variants = 8
+  # expected count is dynamically calculated from images.yml
   expected=$(yq eval '[.bases[] as $base | $base.arch[] as $arch | .variants[] as $variant | 1] | length' "${REPO_ROOT}/images.yml")
   [[ "${count}" -eq "${expected}" ]]
 }

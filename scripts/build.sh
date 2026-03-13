@@ -29,21 +29,31 @@ if [[ ! -f "${BASE_CLOUD_CFG}" ]]; then
   exit 1
 fi
 
-# Validate variant cloud.cfg for non-base variants
-if [[ "${VARIANT}" != "base" ]] && [[ ! -f "${VARIANT_CLOUD_CFG}" ]]; then
-  echo "Error: variants/${VARIANT}/cloud.cfg not found" >&2
-  exit 1
-fi
-
 # Merge cloud-init configs
 MERGED_CFG="$(mktemp)"
-trap 'rm -f "${MERGED_CFG}"' EXIT
+trap 'rm -f "${MERGED_CFG}" "${MERGED_CFG}.tmp"' EXIT
 
-if [[ "${VARIANT}" == "base" ]]; then
-  cp "${BASE_CLOUD_CFG}" "${MERGED_CFG}"
-else
+# Start with base
+cp "${BASE_CLOUD_CFG}" "${MERGED_CFG}"
+
+# Merge snippets in order
+SNIPPETS=$(yq eval ".variants[] | select(.name == \"${VARIANT}\") | .snippets[]" "${IMAGES_YML}" 2>/dev/null || true)
+for snippet in ${SNIPPETS}; do
+  SNIPPET_CFG="${REPO_ROOT}/snippets/${snippet}.cfg"
+  if [[ ! -f "${SNIPPET_CFG}" ]]; then
+    echo "Error: snippets/${snippet}.cfg not found" >&2
+    exit 1
+  fi
   yq eval-all 'select(fileIndex == 0) * select(fileIndex == 1)' \
-    "${BASE_CLOUD_CFG}" "${VARIANT_CLOUD_CFG}" > "${MERGED_CFG}"
+    "${MERGED_CFG}" "${SNIPPET_CFG}" > "${MERGED_CFG}.tmp"
+  mv "${MERGED_CFG}.tmp" "${MERGED_CFG}"
+done
+
+# Merge variant cloud.cfg if exists (non-base variants may have additional config)
+if [[ "${VARIANT}" != "base" ]] && [[ -f "${VARIANT_CLOUD_CFG}" ]]; then
+  yq eval-all 'select(fileIndex == 0) * select(fileIndex == 1)' \
+    "${MERGED_CFG}" "${VARIANT_CLOUD_CFG}" > "${MERGED_CFG}.tmp"
+  mv "${MERGED_CFG}.tmp" "${MERGED_CFG}"
 fi
 
 # Validate merged YAML
