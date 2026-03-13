@@ -39,4 +39,4 @@ jobs:
         env:
           BATS_LIB_PATH: ${{ steps.setup-bats.outputs.lib-path }}
           TERM: xterm
-        run: bats test/generate_matrix.bats
+        run: bats test/generate_matrix.bats test/generate_manifest.bats

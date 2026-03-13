@@ -21,12 +21,8 @@ yq eval -o=json '[
     "version": $base.version,
     "variant": $variant.name,
     "arch": $arch,
-    "description": (
-      if $variant.name == "base" then
-        "Ubuntu " + $base.version
-      else
-        "Ubuntu " + $base.version + " + " + $variant.display_name
-      end
-    )
+    "display_name": $variant.display_name
   }
-]' "${IMAGES_YML}" | jq '.'
+]' "${IMAGES_YML}" | jq '[.[] | . + {
+  "description": (if .variant == "base" then "Ubuntu " + .version else "Ubuntu " + .version + " + " + .display_name end)
+} | del(.display_name)]'
