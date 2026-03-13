@@ -47,7 +47,7 @@ jobs:
 
       - name: Build image
         env:
-          LIBGUESTFS_BACKEND: ${{ matrix.arch == 'arm64' && 'direct' || '' }}
+          LIBGUESTFS_BACKEND: direct
         run: bash scripts/build.sh "${{ matrix.codename }}" "${{ matrix.arch }}" "${{ matrix.variant }}"
 
       - name: Upload artifact
