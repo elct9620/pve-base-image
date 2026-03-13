@@ -44,6 +44,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libguestfs-tools linux-image-generic
+          sudo chmod 0644 /boot/vmlinuz-*
 
       - name: Build image
         env:
