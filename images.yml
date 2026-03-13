@@ -10,7 +10,6 @@ bases:
     url: "https://cloud-images.ubuntu.com/minimal/releases/jammy/release/ubuntu-22.04-minimal-cloudimg-{arch}.img"
     arch:
       - amd64
-      - arm64
 
 variants:
   - name: base
