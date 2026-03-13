@@ -19,7 +19,7 @@ Proxmox VE administrators (solo or small team) who need to quickly deploy VM Tem
 ### Success Criteria
 
 - After adding a base or variant entry to `images.yml`, CI automatically produces the corresponding image and uploads it to a GitHub Release
-- Running `curl ... | bash` on a PVE host walks the user through an interactive menu to import a Template
+- Running `curl -fsSL https://raw.githubusercontent.com/elct9620/pve-base-image/main/install.sh | bash` on a PVE host walks the user through an interactive menu to import a Template
 - The resulting VM Template can be cloned via `qm clone` and initialized with cloud-init
 
 ### Non-goals
@@ -51,13 +51,13 @@ Proxmox VE administrators (solo or small team) who need to quickly deploy VM Tem
 #### J2: Import a Template on PVE
 
 - **Context**: An administrator wants to create a Docker Template on a PVE host
-- **Action**: Run `curl -fsSL <install.sh URL> | bash`, select architecture, base system, variant, and VM parameters in sequence
+- **Action**: Run `curl -fsSL https://raw.githubusercontent.com/elct9620/pve-base-image/main/install.sh | bash`, select architecture, base system, variant, and VM parameters in sequence
 - **Outcome**: The script downloads the image, creates a VM, imports the disk, converts to Template, and displays `qm clone` usage
 
 #### J3: Non-interactive Import
 
 - **Context**: An administrator deploys Templates in batch via Ansible
-- **Action**: Run `curl -fsSL <install.sh URL> | VM_ID=9000 VARIANT=docker bash`
+- **Action**: Run `curl -fsSL https://raw.githubusercontent.com/elct9620/pve-base-image/main/install.sh | VM_ID=9000 VARIANT=docker bash`
 - **Outcome**: The script uses environment variables to skip interactive prompts and completes the Template import automatically
 
 ---
@@ -161,6 +161,14 @@ Each Release includes a `manifest.json` describing all images in the Release. Th
 The install script depends on this schema to populate selection menus and construct download URLs.
 
 ### 3.2 PVE Install Script
+
+#### Distribution
+
+The install script is distributed via GitHub Raw Content from the `elct9620/pve-base-image` repository.
+
+- **Canonical URL**: `https://raw.githubusercontent.com/elct9620/pve-base-image/main/install.sh`
+- This URL always points to the latest version on the `main` branch
+- To pin a specific version, replace `main` with a tag (e.g., `v2026.03.13.1`) or a commit SHA
 
 #### Prerequisites
 
