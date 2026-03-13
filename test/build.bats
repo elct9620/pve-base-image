@@ -48,6 +48,47 @@ teardown() {
   done
 }
 
+@test "merge_cloud_cfg should fail when snippet file is missing" {
+  local tmp_dir
+  tmp_dir="$(mktemp -d)"
+
+  # Create minimal repo structure with base cloud.cfg
+  mkdir -p "${tmp_dir}/base"
+  echo "packages: []" > "${tmp_dir}/base/cloud.cfg"
+
+  # Create images.yml referencing a non-existent snippet
+  cat > "${tmp_dir}/images.yml" <<'YAML'
+variants:
+  - name: test
+    snippets:
+      - nonexistent
+YAML
+
+  run merge_cloud_cfg "${tmp_dir}/images.yml" "test" "${tmp_dir}"
+  rm -rf "${tmp_dir}"
+
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == *"snippets/nonexistent.cfg not found"* ]]
+}
+
+@test "merge_cloud_cfg should fail when base cloud.cfg is missing" {
+  local tmp_dir
+  tmp_dir="$(mktemp -d)"
+
+  # Create images.yml but no base/cloud.cfg
+  cat > "${tmp_dir}/images.yml" <<'YAML'
+variants:
+  - name: test
+    snippets: []
+YAML
+
+  run merge_cloud_cfg "${tmp_dir}/images.yml" "test" "${tmp_dir}"
+  rm -rf "${tmp_dir}"
+
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == *"base/cloud.cfg not found"* ]]
+}
+
 @test "build: snippet files referenced in images.yml should exist" {
   local snippets
   snippets=$(yq eval '.variants[].snippets[]' "${IMAGES_YML}" 2>/dev/null | sort -u || true)

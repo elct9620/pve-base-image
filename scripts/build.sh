@@ -21,15 +21,7 @@ ARCH="$2"
 VARIANT="$3"
 
 # Resolve paths
-BASE_CLOUD_CFG="${REPO_ROOT}/base/cloud.cfg"
-VARIANT_CLOUD_CFG="${REPO_ROOT}/variants/${VARIANT}/cloud.cfg"
 OUTPUT_FILE="ubuntu-${CODENAME}-${VARIANT}-${ARCH}.img"
-
-# Validate base cloud.cfg
-if [[ ! -f "${BASE_CLOUD_CFG}" ]]; then
-  echo "Error: base/cloud.cfg not found at ${BASE_CLOUD_CFG}" >&2
-  exit 1
-fi
 
 # Merge cloud-init configs
 MERGED_CFG="$(merge_cloud_cfg "${IMAGES_YML}" "${VARIANT}" "${REPO_ROOT}")"

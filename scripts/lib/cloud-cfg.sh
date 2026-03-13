@@ -11,6 +11,12 @@ merge_cloud_cfg() {
   local merged
   merged="$(mktemp)"
 
+  if [[ ! -f "${base_cfg}" ]]; then
+    echo "Error: base/cloud.cfg not found at ${base_cfg}" >&2
+    rm -f "${merged}"
+    return 1
+  fi
+
   cp "${base_cfg}" "${merged}"
 
   # Merge snippets in order
