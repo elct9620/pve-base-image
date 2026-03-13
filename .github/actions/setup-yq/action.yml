@@ -1,0 +1,15 @@
+name: Setup yq
+description: Install yq binary with pinned version
+
+inputs:
+  version:
+    description: yq version to install
+    default: "v4.45.4"
+
+runs:
+  using: composite
+  steps:
+    - run: |
+        sudo wget -qO /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/download/${{ inputs.version }}/yq_linux_$(dpkg --print-architecture)"
+        sudo chmod +x /usr/local/bin/yq
+      shell: bash

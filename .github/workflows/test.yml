@@ -7,12 +7,24 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  unit-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
 
-      - name: Run bats tests
+      - name: Run unit tests
         uses: bats-core/bats-action@4
         with:
-          tests: test/
+          tests: test/prompt.bats
+
+  script-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: ./.github/actions/setup-yq
+
+      - name: Run script tests
+        uses: bats-core/bats-action@4
+        with:
+          tests: test/generate_matrix.bats

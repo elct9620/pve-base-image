@@ -16,10 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Install yq
-        run: |
-          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-          sudo chmod +x /usr/local/bin/yq
+      - uses: ./.github/actions/setup-yq
 
       - name: Generate matrix
         id: gen
@@ -41,12 +38,12 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
+      - uses: ./.github/actions/setup-yq
+
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y libguestfs-tools linux-image-generic
-          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_${{ matrix.arch }}
-          sudo chmod +x /usr/local/bin/yq
 
       - name: Build image
         env:
@@ -66,10 +63,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Install yq
-        run: |
-          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-          sudo chmod +x /usr/local/bin/yq
+      - uses: ./.github/actions/setup-yq
 
       - name: Download all artifacts
         uses: actions/download-artifact@v8
