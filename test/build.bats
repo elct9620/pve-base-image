@@ -173,6 +173,30 @@ YAML
   [[ "${chmod_line}" -gt "${npm_line}" ]]
 }
 
+@test "build: coding variant profile.d should not set MISE_DATA_DIR" {
+  local variant_cfg="${REPO_ROOT}/variants/coding/cloud.cfg"
+
+  # profile.d scripts must not export MISE_DATA_DIR (causes permission issues for non-root users)
+  local profile_data_dir
+  profile_data_dir=$(grep -A5 'profile.d/mise' "${variant_cfg}" | grep 'MISE_DATA_DIR' || true)
+
+  [[ -z "${profile_data_dir}" ]]
+}
+
+@test "build: coding variant profile.d should set MISE_SHARED_INSTALL_DIRS" {
+  local variant_cfg="${REPO_ROOT}/variants/coding/cloud.cfg"
+
+  run grep 'MISE_SHARED_INSTALL_DIRS' "${variant_cfg}"
+  [[ "${status}" -eq 0 ]]
+}
+
+@test "build: coding variant profile.d should set NPM_CONFIG_PREFIX" {
+  local variant_cfg="${REPO_ROOT}/variants/coding/cloud.cfg"
+
+  run grep 'NPM_CONFIG_PREFIX' "${variant_cfg}"
+  [[ "${status}" -eq 0 ]]
+}
+
 @test "build: snippet files referenced in images.yml should exist" {
   local snippets
   snippets=$(yq eval '.variants[].snippets[]' "${IMAGES_YML}" 2>/dev/null | sort -u || true)
