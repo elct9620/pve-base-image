@@ -51,6 +51,6 @@ echo "Downloading base image from ${URL}..."
 wget -q --show-progress -O "${OUTPUT_FILE}" "${URL}"
 
 echo "Injecting cloud.cfg into image..."
-guestfish --rw -a "${OUTPUT_FILE}" -i upload "${MERGED_CFG}" /etc/cloud/cloud.cfg
+guestfish --rw -a "${OUTPUT_FILE}" -i upload "${MERGED_CFG}" /etc/cloud/cloud.cfg.d/99_pve.cfg
 
 echo "Built: ${OUTPUT_FILE}"

@@ -89,6 +89,13 @@ YAML
   [[ "${output}" == *"base/cloud.cfg not found"* ]]
 }
 
+@test "build: guestfish should upload to cloud.cfg.d drop-in, not overwrite cloud.cfg" {
+  run grep -E 'guestfish.*upload' "${REPO_ROOT}/scripts/build.sh"
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"/etc/cloud/cloud.cfg.d/99_pve.cfg"* ]]
+  [[ "${output}" != *"upload\"*\"/etc/cloud/cloud.cfg\""* ]]
+}
+
 @test "build: snippet files referenced in images.yml should exist" {
   local snippets
   snippets=$(yq eval '.variants[].snippets[]' "${IMAGES_YML}" 2>/dev/null | sort -u || true)
