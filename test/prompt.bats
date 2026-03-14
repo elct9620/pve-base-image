@@ -102,6 +102,66 @@ setup() {
   [[ "${status}" -eq 0 ]]
 }
 
+# --- prompt_confirm ---
+
+@test "prompt_confirm: should default to yes on empty input" {
+  fake_empty_input
+  prompt_confirm RESULT "Enable feature?" "y"
+  [[ "${RESULT}" == "yes" ]]
+}
+
+@test "prompt_confirm: should return no when input is n" {
+  fake_input "n"
+  prompt_confirm RESULT "Enable feature?" "y"
+  [[ "${RESULT}" == "no" ]]
+}
+
+@test "prompt_confirm: should return yes when input is Y" {
+  fake_input "Y"
+  prompt_confirm RESULT "Enable feature?" "n"
+  [[ "${RESULT}" == "yes" ]]
+}
+
+@test "prompt_confirm: should default to no when default is n and input is empty" {
+  fake_empty_input
+  prompt_confirm RESULT "Enable feature?" "n"
+  [[ "${RESULT}" == "no" ]]
+}
+
+@test "prompt_confirm: should skip when variable already set" {
+  RESULT="preset"
+  fake_empty_input
+  prompt_confirm RESULT "Enable feature?" "y"
+  [[ "${RESULT}" == "preset" ]]
+}
+
+# --- detect_storages ---
+
+@test "detect_storages: should return 1 when pvesm is not available" {
+  run detect_storages
+  [[ "${status}" -eq 1 ]]
+}
+
+@test "detect_storages: should return active storages from pvesm output" {
+  local mock_dir="${BATS_TEST_TMPDIR}/bin"
+  mkdir -p "${mock_dir}"
+  cat > "${mock_dir}/pvesm" <<'MOCK'
+#!/usr/bin/env bash
+cat <<'EOF'
+Name         Type     Status           Total            Used       Available        %
+local-lvm    lvmthin  active       114473984        5242880       109231104    4.58%
+local        dir      active        30308696       18498408        10243340   61.03%
+nfs-backup   nfs      inactive      50000000       10000000        40000000   20.00%
+EOF
+MOCK
+  chmod +x "${mock_dir}/pvesm"
+  PATH="${mock_dir}:${PATH}" run detect_storages
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"local-lvm"* ]]
+  [[ "${output}" == *"local"* ]]
+  [[ "${output}" != *"nfs-backup"* ]]
+}
+
 @test "prompt_menu: should work without labels" {
   fake_empty_input
   local OPTIONS=("x" "y")

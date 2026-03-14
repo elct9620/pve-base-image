@@ -58,6 +58,27 @@ prompt_menu() {
   fi
 }
 
+prompt_confirm() {
+  local var="$1" prompt_msg="$2" default="${3:-y}"
+  if [[ -n "${!var:-}" ]]; then
+    return
+  fi
+  local input
+  read -r -p "${prompt_msg} [${default}]: " input <"${TTY_INPUT}" || true
+  input="${input:-${default}}"
+  case "${input}" in
+    [Yy]*) printf -v "${var}" '%s' "yes" ;;
+    *)     printf -v "${var}" '%s' "no" ;;
+  esac
+}
+
+detect_storages() {
+  if ! command -v pvesm > /dev/null 2>&1; then
+    return 1
+  fi
+  pvesm status --content images 2>/dev/null | awk 'NR>1 && $3=="active" {print $1}'
+}
+
 # --- Main (skipped when sourced for testing) ---
 
 [[ -n "${BASH_SOURCE[0]:-}" && "${BASH_SOURCE[0]}" != "${0}" ]] && return 0
@@ -176,8 +197,13 @@ DEFAULT_VM_NAME="${OS}-${BASE}-${VARIANT}"
 
 prompt VM_ID "VM ID" "9000"
 prompt VM_NAME "VM name" "${DEFAULT_VM_NAME}"
-prompt STORAGE "Storage" "local-lvm"
-prompt CI_STORAGE "Cloud-Init storage" "local-lvm"
+if mapfile -t STORAGE_OPTIONS < <(detect_storages) && [[ ${#STORAGE_OPTIONS[@]} -gt 0 ]]; then
+  prompt_menu STORAGE "Select storage:" "local-lvm" STORAGE_OPTIONS
+  prompt_menu CI_STORAGE "Select Cloud-Init storage:" "local-lvm" STORAGE_OPTIONS
+else
+  prompt STORAGE "Storage" "local-lvm"
+  prompt CI_STORAGE "Cloud-Init storage" "local-lvm"
+fi
 prompt MEMORY "Memory (MB)" "2048"
 prompt CORES "CPU cores" "1"
 prompt BRIDGE "Network bridge" "vmbr0"
@@ -246,10 +272,21 @@ qm set "${VM_ID}" \
 info "Converting to template..."
 qm template "${VM_ID}"
 
+# --- Phase 3: Cloud-Init Defaults ---
+
+info "Phase 3: Cloud-Init Defaults"
+
+prompt_confirm ENABLE_DHCP "Enable DHCP for network (ipconfig0 ip=dhcp)?" "y"
+
+if [[ "${ENABLE_DHCP}" == "yes" ]]; then
+  info "Setting ipconfig0 ip=dhcp..."
+  qm set "${VM_ID}" --ipconfig0 ip=dhcp
+fi
+
 echo ""
 info "Template created successfully!"
 echo ""
 echo "Usage:"
 echo "  qm clone ${VM_ID} <new-vm-id> --name <name>"
-echo "  qm set <new-vm-id> --ciuser admin --cipassword secret --ipconfig0 ip=dhcp"
+echo "  qm set <new-vm-id> --ciuser admin --sshkeys ~/.ssh/authorized_keys"
 echo "  qm start <new-vm-id>"
