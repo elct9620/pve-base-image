@@ -96,6 +96,12 @@ setup() {
   [[ "${result}" != *"return: can only"* ]]
 }
 
+@test "install.sh: qm create should include --agent enabled=1" {
+  local script="${BATS_TEST_DIRNAME}/../install.sh"
+  run grep -E '\-\-agent\s+enabled=1' "${script}"
+  [[ "${status}" -eq 0 ]]
+}
+
 @test "prompt_menu: should work without labels" {
   fake_empty_input
   local OPTIONS=("x" "y")

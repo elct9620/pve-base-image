@@ -230,6 +230,7 @@ qm create "${VM_ID}" \
   --cores "${CORES}" \
   --net0 "virtio,bridge=${BRIDGE}" \
   --scsihw virtio-scsi-pci \
+  --agent enabled=1 \
   --serial0 socket \
   --vga serial0
 
