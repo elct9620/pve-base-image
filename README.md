@@ -86,6 +86,8 @@ curl -fsSL https://raw.githubusercontent.com/elct9620/pve-base-image/main/instal
 
 ## Add a New Variant
 
+> **Using [Claude Code](https://claude.ai/code)?** Run `/variants` to create a new variant interactively. The skill guides you through naming, package research, snippet reuse, and config generation — no manual steps required.
+
 ### 1. Create a variant directory with a `cloud.cfg`
 
 Each variant has its own directory under `variants/` containing a `cloud.cfg` file with cloud-init configuration:
