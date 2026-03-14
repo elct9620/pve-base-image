@@ -96,6 +96,48 @@ YAML
   [[ "${output}" != *"upload\"*\"/etc/cloud/cloud.cfg\""* ]]
 }
 
+@test "build: coding variant merged runcmd should contain base, snippet, and variant commands" {
+  local merged
+  merged="$(merge_cloud_cfg "${IMAGES_YML}" "coding" "${REPO_ROOT}")"
+  MERGED_FILES+=("${merged}")
+
+  local runcmd
+  runcmd=$(yq eval '.runcmd[]' "${merged}")
+
+  # Base: qemu-guest-agent
+  echo "${runcmd}" | grep -q 'qemu-guest-agent'
+  # Snippet (docker): docker-ce
+  echo "${runcmd}" | grep -q 'docker-ce'
+  # Variant (coding): mise
+  echo "${runcmd}" | grep -q 'mise'
+}
+
+@test "build: docker variant merged runcmd should contain base qemu-guest-agent command" {
+  local merged
+  merged="$(merge_cloud_cfg "${IMAGES_YML}" "docker" "${REPO_ROOT}")"
+  MERGED_FILES+=("${merged}")
+
+  local runcmd
+  runcmd=$(yq eval '.runcmd[]' "${merged}")
+
+  # Base: qemu-guest-agent
+  echo "${runcmd}" | grep -q 'qemu-guest-agent'
+  # Snippet (docker): docker-ce
+  echo "${runcmd}" | grep -q 'docker-ce'
+}
+
+@test "build: coding variant runcmd should not call mise activate directly (only in profile.d)" {
+  local merged
+  merged="$(merge_cloud_cfg "${IMAGES_YML}" "coding" "${REPO_ROOT}")"
+  MERGED_FILES+=("${merged}")
+
+  # runcmd items containing "mise activate" must also contain "profile.d" (heredoc context)
+  local non_profile_activate
+  non_profile_activate=$(yq eval '.runcmd[] | select(test("mise activate")) | select(test("profile.d") | not)' "${merged}" || true)
+
+  [[ -z "${non_profile_activate}" ]]
+}
+
 @test "build: snippet files referenced in images.yml should exist" {
   local snippets
   snippets=$(yq eval '.variants[].snippets[]' "${IMAGES_YML}" 2>/dev/null | sort -u || true)

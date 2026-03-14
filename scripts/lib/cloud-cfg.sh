@@ -29,14 +29,14 @@ merge_cloud_cfg() {
       rm -f "${merged}"
       return 1
     fi
-    yq eval-all 'select(fileIndex == 0) * select(fileIndex == 1)' \
+    yq eval-all 'select(fileIndex == 0) *+ select(fileIndex == 1)' \
       "${merged}" "${snippet_cfg}" > "${merged}.tmp"
     mv "${merged}.tmp" "${merged}"
   done
 
   # Merge variant cloud.cfg if exists (non-base variants may have additional config)
   if [[ "${variant}" != "base" ]] && [[ -f "${variant_cfg}" ]]; then
-    yq eval-all 'select(fileIndex == 0) * select(fileIndex == 1)' \
+    yq eval-all 'select(fileIndex == 0) *+ select(fileIndex == 1)' \
       "${merged}" "${variant_cfg}" > "${merged}.tmp"
     mv "${merged}.tmp" "${merged}"
   fi
