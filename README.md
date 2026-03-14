@@ -39,7 +39,8 @@ The script will guide you through:
 1. **Architecture** — amd64 or arm64
 2. **Distribution** — Ubuntu codename (e.g., noble, jammy)
 3. **Variant** — base, docker, coding
-4. **Template settings** — VM ID, storage, memory, CPU, network (all have sensible defaults)
+4. **Template parameters** — VM ID, storage (auto-detected), memory, CPU, network
+5. **Cloud-Init defaults** — DHCP configuration
 
 ```
 ┌─── Phase 1: Image Selection ───────────────────────────┐
@@ -48,23 +49,30 @@ The script will guide you through:
 │  Distribution?   [1] noble (24.04)  [2] jammy (22.04)  │
 │  Variant?        [1] base  [2] docker  [3] coding      │
 │                                                        │
-├─── Phase 2: Template Defaults (Enter = accept) ────────┤
+├─── Phase 2: Template Parameters ───────────────────────┤
 │                                                        │
 │  VM ID?          9000                                  │
 │  VM Name?        ubuntu-noble-docker                   │
-│  Storage?        local-lvm                             │
+│  Storage?        [1] local-lvm  [2] ceph  (auto-detected) │
+│  CI Storage?     [1] local-lvm  [2] ceph  (auto-detected) │
 │  Memory?         2048 MB                               │
 │  CPU Cores?      1                                     │
 │  Network?        vmbr0                                 │
 │                                                        │
+├─── Phase 3: Cloud-Init Defaults ───────────────────────┤
+│                                                        │
+│  Enable DHCP?    [y] (default)                         │
+│                                                        │
 └────────────────────────────────────────────────────────┘
 ```
 
-After completion, clone the Template to create VMs:
+Storage is auto-detected from PVE when `pvesm` is available. If auto-detection fails, you will be prompted to enter storage names manually.
+
+After completion, clone the template to create VMs:
 
 ```bash
 qm clone 9000 100 --name my-vm
-qm set 100 --ciuser admin --cipassword secret --ipconfig0 ip=dhcp
+qm set 100 --ciuser admin --sshkeys ~/.ssh/authorized_keys
 qm start 100
 ```
 
@@ -170,6 +178,7 @@ All variables are optional. Set them to skip the corresponding interactive promp
 | `MEMORY` | Memory (MB) | `2048` |
 | `CORES` | CPU cores | `1` |
 | `BRIDGE` | Network bridge | `vmbr0` |
+| `ENABLE_DHCP` | Set DHCP on ipconfig0 | `yes` (when confirmed) |
 | `GITHUB_TOKEN` | GitHub API token | *(unset)* — set to avoid rate limiting |
 
 ## Prerequisites
