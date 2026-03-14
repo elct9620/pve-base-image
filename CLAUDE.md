@@ -84,6 +84,12 @@ Uses `yq eval-all 'select(fileIndex==0) *+ select(fileIndex==1)'` for deep YAML 
 - **Ubuntu kernel file permissions:** `/boot/vmlinuz-*` defaults to root-only (0600). supermin requires read access, so CI must adjust permissions.
 - **Use guestfish, not virt-edit:** `virt-edit --upload` is not supported. Use `guestfish upload` for file injection.
 
+### mise (Coding Variant)
+
+- **System config must be `/etc/mise/config.toml`:** `mise activate` only searches default paths (`~/.config/mise/`, `/etc/mise/`). Writing to `/etc/mise.toml` makes tools invisible to login shells.
+- **`chmod -R a+rX` must run after all installs:** Running chmod before `npm install -g` leaves newly installed binaries and reshimmed shims without read/execute permissions for non-root users. Always place chmod as the final step.
+- **`mise exec` must specify tool@version:** Bare `mise exec --` without a tool spec (e.g., `node@lts`) may fail to resolve binaries in runcmd context where PATH is minimal.
+
 ### install.sh Compatibility
 
 - **Pipe mode (`curl | bash`):** `BASH_SOURCE` is unset in pipe mode, causing `set -u` to abort. Use `${BASH_SOURCE:-}` as a default. `return` also fails outside sourced context, so the source guard needs special handling.
