@@ -88,6 +88,13 @@ setup() {
   [[ "${RESULT}" == "z" ]]
 }
 
+@test "prompt_menu: should default to first detected storage" {
+  fake_empty_input
+  local STORAGE_OPTIONS=("local-zfs-deskmini" "local")
+  prompt_menu RESULT "Select storage:" "${STORAGE_OPTIONS[0]}" STORAGE_OPTIONS
+  [[ "${RESULT}" == "local-zfs-deskmini" ]]
+}
+
 @test "install.sh: should not fail with unbound BASH_SOURCE in pipe mode" {
   local script="${BATS_TEST_DIRNAME}/../install.sh"
   local result

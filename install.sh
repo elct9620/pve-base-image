@@ -198,8 +198,8 @@ DEFAULT_VM_NAME="${OS}-${BASE}-${VARIANT}"
 prompt VM_ID "VM ID" "9000"
 prompt VM_NAME "VM name" "${DEFAULT_VM_NAME}"
 if mapfile -t STORAGE_OPTIONS < <(detect_storages) && [[ ${#STORAGE_OPTIONS[@]} -gt 0 ]]; then
-  prompt_menu STORAGE "Select storage:" "local-lvm" STORAGE_OPTIONS
-  prompt_menu CI_STORAGE "Select Cloud-Init storage:" "local-lvm" STORAGE_OPTIONS
+  prompt_menu STORAGE "Select storage:" "${STORAGE_OPTIONS[0]}" STORAGE_OPTIONS
+  prompt_menu CI_STORAGE "Select Cloud-Init storage:" "${STORAGE_OPTIONS[0]}" STORAGE_OPTIONS
 else
   prompt STORAGE "Storage" "local-lvm"
   prompt CI_STORAGE "Cloud-Init storage" "local-lvm"
