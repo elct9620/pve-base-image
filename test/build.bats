@@ -138,6 +138,16 @@ YAML
   [[ -z "${non_profile_activate}" ]]
 }
 
+@test "build: coding variant mise exec should specify explicit tool version" {
+  local variant_cfg="${REPO_ROOT}/variants/coding/cloud.cfg"
+
+  # Every 'mise exec' call must include a tool@version spec (e.g. node@lts)
+  local bare_exec
+  bare_exec=$(grep 'mise exec' "${variant_cfg}" | grep -v 'mise exec [a-z].*@' || true)
+
+  [[ -z "${bare_exec}" ]]
+}
+
 @test "build: snippet files referenced in images.yml should exist" {
   local snippets
   snippets=$(yq eval '.variants[].snippets[]' "${IMAGES_YML}" 2>/dev/null | sort -u || true)
