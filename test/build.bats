@@ -148,6 +148,31 @@ YAML
   [[ -z "${bare_exec}" ]]
 }
 
+@test "build: coding variant mise config should use /etc/mise/config.toml" {
+  local variant_cfg="${REPO_ROOT}/variants/coding/cloud.cfg"
+
+  # Should use /etc/mise/config.toml (system-level config directory)
+  run grep '/etc/mise.toml' "${variant_cfg}"
+  [[ "${status}" -ne 0 ]]
+
+  run grep '/etc/mise/config.toml' "${variant_cfg}"
+  [[ "${status}" -eq 0 ]]
+}
+
+@test "build: coding variant chmod should run after npm install" {
+  local variant_cfg="${REPO_ROOT}/variants/coding/cloud.cfg"
+
+  # Find line numbers for npm install and chmod
+  local npm_line chmod_line
+  npm_line=$(grep -n 'npm install -g' "${variant_cfg}" | head -1 | cut -d: -f1)
+  chmod_line=$(grep -n 'chmod -R a+rX /usr/local/share/mise' "${variant_cfg}" | head -1 | cut -d: -f1)
+
+  # chmod must appear after npm install
+  [[ -n "${npm_line}" ]]
+  [[ -n "${chmod_line}" ]]
+  [[ "${chmod_line}" -gt "${npm_line}" ]]
+}
+
 @test "build: snippet files referenced in images.yml should exist" {
   local snippets
   snippets=$(yq eval '.variants[].snippets[]' "${IMAGES_YML}" 2>/dev/null | sort -u || true)
